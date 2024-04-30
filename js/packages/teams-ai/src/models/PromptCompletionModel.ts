@@ -42,7 +42,7 @@ export interface PromptCompletionModel {
  * `invalid_response` - The response was invalid.
  * `too_long` - The rendered prompt exceeded the `max_input_tokens` limit.
  */
-export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long';
+export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long' | 'stream';
 
 /**
  * Response returned by a `PromptCompletionClient`.
@@ -62,12 +62,60 @@ export interface PromptResponse<TContent = unknown> {
     /**
      * Message returned.
      * @remarks
-     * This will be a `Message<TContent>` object if the status is `success`, otherwise it will be a `string`.
+     * This will be populated if the status is `success`.
      */
     message?: Message<TContent>;
 
     /**
+     * Response as a stream of chunks.
+     * @remarks
+     * This will be populated if the status is `stream`.
+     */
+    stream?: PromptResponseStream<TContent>;
+
+    /**
      * Error returned.
+     * @remarks
+     * This will be populated if the status is not 'success' or 'stream'.
+     */
+    error?: Error;
+}
+
+/**
+ * Stream of chunks returned by a `PromptCompletionModel`.
+ * @template TContent Optional. Type of the content in the message. Defaults to `unknown`.
+ */
+export interface PromptResponseStream<TContent = unknown> {
+    /**
+     * Retrieves the next chunk of the response.
+     * @remarks
+     * Returns `undefined` if the stream is complete.
+     */
+    nextChunk(): Promise<PromptResponseChange<TContent>|undefined>;
+}
+
+/**
+ * An individual delta in a prompt response stream.
+ * @template TContent Optional. Type of the content in the message. Defaults to `unknown`.
+ */
+export interface PromptResponseChange<TContent = unknown> {
+    /**
+     * Status of the prompt response.
+     */
+    status: PromptResponseStatus;
+
+    /**
+     * Returns `true` if the prompt is complete.
+     */
+    isComplete: boolean;
+
+    /**
+     * Next chunk of the response.
+     */
+    delta?: Partial<Message<TContent>>;
+
+    /**
+     * Error returned if any.
      */
     error?: Error;
 }

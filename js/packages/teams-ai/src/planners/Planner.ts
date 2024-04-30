@@ -73,7 +73,7 @@ export interface PredictedCommand {
      * DO commands are actions that the AI system should perform. SAY commands are responses that
      * the AI system should say.
      */
-    type: 'DO' | 'SAY';
+    type: 'DO' | 'SAY' | 'STREAM';
 }
 
 /**
@@ -109,4 +109,22 @@ export interface PredictedSayCommand extends PredictedCommand {
      * The response that the AI system should say.
      */
     response: Message<string>;
+}
+
+
+/**
+ * A predicted STREAM of child commands the AI system should process.
+ */
+export interface PredictedStreamCommand extends PredictedCommand {
+    /**
+     * Type to indicate that a SAY command is being returned.
+     */
+    type: 'STREAM';
+
+    /**
+     * Retrieves teh next predicted command.
+     * @remarks
+     * Returns undefined when there are no more predicted commands.
+     */
+    nextCommand(): Promise<PredictedCommand|undefined>;
 }
