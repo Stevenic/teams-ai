@@ -14,7 +14,13 @@ import {
     FileConsentCardResponse
 } from 'botbuilder';
 
-import { Application, ConversationUpdateEvents, MessageReactionEvents, TeamsMessageEvents } from './Application';
+import {
+    Application,
+    ConversationUpdateEvents,
+    FeedbackLoopData,
+    MessageReactionEvents,
+    TeamsMessageEvents
+} from './Application';
 import { AdaptiveCardsOptions } from './AdaptiveCards';
 import { AIOptions } from './AI';
 import { TestPlanner } from './internals/testing/TestPlanner';
@@ -747,6 +753,33 @@ describe('Application', () => {
         });
     });
 
+    describe('handoff', () => {
+        let app = new Application();
+
+        beforeEach(() => {
+            app = new Application();
+            sandbox.stub(app, 'adapter').get(() => testAdapter);
+        });
+
+        it('should route to correct handler for handoff', async () => {
+            let handlerCalled = false;
+
+            app.handoff(async (context, _state, token) => {
+                handlerCalled = true;
+                assert.equal(context.activity.type, ActivityTypes.Invoke);
+                assert.equal(context.activity.name, 'handoff/action');
+                assert.equal(token, 'test');
+            });
+
+            const activity = createTestInvoke('handoff/action', { continuation: 'test' });
+
+            await testAdapter.processActivity(activity, async (context) => {
+                await app.run(context);
+                assert.equal(handlerCalled, true);
+            });
+        });
+    });
+
     describe('messageUpdate', () => {
         let app = new Application();
 
@@ -840,6 +873,48 @@ describe('Application', () => {
             };
 
             await testAdapter.processActivity(testActivity, async (context) => {
+                await app.run(context);
+                assert.equal(handlerCalled, true);
+            });
+        });
+    });
+
+    describe('feedbackLoop', () => {
+        let app = new Application();
+
+        beforeEach(() => {
+            app = new Application();
+            sandbox.stub(app, 'adapter').get(() => testAdapter);
+        });
+        it('should route to correct handler for feedbackLoop', async () => {
+            let handlerCalled = false;
+
+            app.feedbackLoop(async (context, _state, feedbackLoopData) => {
+                handlerCalled = true;
+                assert.equal(context.activity.type, ActivityTypes.Invoke);
+                assert.equal(context.activity.name, 'message/submitAction');
+                assert.equal(feedbackLoopData.actionValue.reaction, 'like');
+                assert.notEqual(feedbackLoopData.actionValue.feedback, undefined);
+                assert.notEqual(feedbackLoopData.replyToId, undefined);
+            });
+
+            const channelData = {
+                feedbackLoopEnabled: true
+            };
+
+            const feedback: FeedbackLoopData = {
+                actionName: 'feedback',
+                actionValue: {
+                    reaction: 'like',
+                    feedback: 'this response is helpful'
+                },
+                replyToId: '1234567890'
+            };
+
+            const activity = createTestInvoke('message/submitAction', feedback, channelData);
+            activity.replyToId = '1234567890';
+
+            await testAdapter.processActivity(activity, async (context) => {
                 await app.run(context);
                 assert.equal(handlerCalled, true);
             });

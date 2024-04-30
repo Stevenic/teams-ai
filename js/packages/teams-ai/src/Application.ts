@@ -140,6 +140,27 @@ export interface ApplicationOptions<TState extends TurnState> {
 }
 
 /**
+ * Data returned when the thumbsup or thumbsdown button is clicked and response sent when enable_feedback_loop is set to true in the AI Module.
+ */
+export interface FeedbackLoopData {
+    actionName: 'feedback';
+    actionValue: {
+        /**
+         * 'like' or 'dislike'
+         */
+        reaction: string;
+        /**
+         * The response the user provides when prompted with "What did you like/dislike?" after pressing one of the feedback buttons.
+         */
+        feedback: string;
+    };
+    /**
+     * The activity ID that the feedback was provided on.
+     */
+    replyToId: string;
+}
+
+/**
  * Conversation update events.
  */
 export type ConversationUpdateEvents =
@@ -566,7 +587,7 @@ export class Application<TState extends TurnState = TurnState> {
         const handlerWrapper = (context: TurnContext, state: TState) => {
             return handler(context, state, context.activity.value as FileConsentCardResponse);
         };
-        this.addRoute(selector, handlerWrapper);
+        this.addRoute(selector, handlerWrapper, true);
         return this;
     }
 
@@ -588,7 +609,7 @@ export class Application<TState extends TurnState = TurnState> {
         const handlerWrapper = (context: TurnContext, state: TState) => {
             return handler(context, state, context.activity.value as FileConsentCardResponse);
         };
-        this.addRoute(selector, handlerWrapper);
+        this.addRoute(selector, handlerWrapper, true);
         return this;
     }
 
@@ -609,7 +630,59 @@ export class Application<TState extends TurnState = TurnState> {
         const handlerWrapper = (context: TurnContext, state: TState) => {
             return handler(context, state, context.activity.value as O365ConnectorCardActionQuery);
         };
-        this.addRoute(selector, handlerWrapper);
+        this.addRoute(selector, handlerWrapper, true);
+        return this;
+    }
+
+    /**
+     * Registers a handler to handoff conversations from one copilot to another.
+     * @param {(context: TurnContext, state: TState, continuation: string) => Promise<void>} handler Function to call when the route is triggered.
+     * @returns {this} The application instance for chaining purposes.
+     */
+    public handoff(handler: (context: TurnContext, state: TState, continuation: string) => Promise<void>): this {
+        const selector = (context: TurnContext): Promise<boolean> => {
+            return Promise.resolve(
+                context.activity.type === ActivityTypes.Invoke && context.activity.name === 'handoff/action'
+            );
+        };
+        const handlerWrapper = async (context: TurnContext, state: TState) => {
+            await handler(context, state, context.activity.value!.continuation);
+            await context.sendActivity({
+                type: ActivityTypes.InvokeResponse,
+                value: { status: 200 }
+            });
+        };
+        this.addRoute(selector, handlerWrapper, true);
+        return this;
+    }
+    /**
+     * Registers a handler for feedbackloop events when a user clicks the thumbsup or thumbsdown button on a response from AI. enable_feedback_loop must be set to true in the AI Module.
+     * @param {(context: TurnContext, state: TState, feedbackLoopData: FeedbackLoopData) => Promise<void>} handler - Function to call when the route is triggered
+     * @returns {this} The application instance for chaining purposes.
+     */
+    public feedbackLoop(
+        handler: (context: TurnContext, state: TState, feedbackLoopData: FeedbackLoopData) => Promise<void>
+    ): this {
+        const selector = (context: TurnContext): Promise<boolean> => {
+            return Promise.resolve(
+                context.activity.type === ActivityTypes.Invoke &&
+                    context.activity.name === 'message/submitAction' &&
+                    context.activity.value.actionName === 'feedback'
+            );
+        };
+
+        const handlerWrapper = async (context: TurnContext, state: TState) => {
+            const feedback: FeedbackLoopData = {
+                ...context.activity.value,
+                replyToId: context.activity.replyToId
+            };
+            await handler(context, state, feedback);
+            await context.sendActivity({
+                type: ActivityTypes.InvokeResponse,
+                value: { status: 200 }
+            });
+        };
+        this.addRoute(selector, handlerWrapper, true);
         return this;
     }
 
