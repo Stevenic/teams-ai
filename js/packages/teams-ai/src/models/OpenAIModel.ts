@@ -229,6 +229,10 @@ export class OpenAIModel implements PromptCompletionModel {
         tokenizer: Tokenizer,
         template: PromptTemplate
     ): Promise<PromptResponse<string>> {
+        // TODO: add support for 'tools' augmentation
+        // - look at template.augmentations?.serverAugmentation == 'tools'
+        // - get list of tools from template.actions[] and map to 'tools' property of completion.
+
         const startTime = Date.now();
         const max_input_tokens = template.config.completion.max_input_tokens;
         const model =

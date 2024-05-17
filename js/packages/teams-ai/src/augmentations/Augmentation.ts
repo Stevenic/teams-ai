@@ -14,11 +14,21 @@ import { Memory } from '../MemoryFork';
 import { PromptResponse } from '../models';
 
 /**
+ * Server augmentation types.
+ */
+export type ServerAugmentationTypes = 'none' | 'tools'; // TODO: Add ServerAugmentationTypes type.
+
+/**
  * An augmentation is a component that can be added to a prompt template to add additional
  * functionality to the prompt.
  * @template TContent Optional. Type of message content returned for a 'success' response. The `response.message.content` field will be of type TContent. Defaults to `any`.
  */
 export interface Augmentation<TContent = any> extends PromptResponseValidator<TContent> {
+    /**
+     * Type of server augmentation to use.
+     */
+    readonly serverAugmentation: ServerAugmentationTypes; // TODO: Add serverAugmentation property.
+
     /**
      * Creates an optional prompt section for the augmentation.
      */

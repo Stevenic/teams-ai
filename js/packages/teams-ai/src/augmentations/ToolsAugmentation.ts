@@ -16,17 +16,17 @@ import { PromptSection } from '../prompts';
 import { Memory } from '../MemoryFork';
 
 /**
- * The default 'none' augmentation.
+ * A server-side 'tools' augmentation.
  * @remarks
  * This augmentation does not add any additional functionality to the prompt. It always
  * returns a `Plan` with a single `SAY` command containing the models response.
  */
-export class DefaultAugmentation implements Augmentation<string> {
+export class ToolsAugmentation implements Augmentation<string> {
     /**
      * Type of server augmentation to use.
      */
-    public readonly serverAugmentation: ServerAugmentationTypes = 'none'; // TODO: Add serverAugmentation property.
-    
+    public readonly serverAugmentation: ServerAugmentationTypes = 'tools'; // TODO: Add serverAugmentation property.
+
     /**
      * @returns {PromptSection|undefined} Returns an optional prompt section for the augmentation.
      */
@@ -50,10 +50,9 @@ export class DefaultAugmentation implements Augmentation<string> {
         response: PromptResponse<string>,
         remaining_attempts: number
     ): Promise<Validation<string>> {
-        return Promise.resolve({
-            type: 'Validation',
-            valid: true
-        });
+        // Validate that any tools being invoked pass schema validation.
+        // - Look at the 'DO' validation for the 'sequence' augmentation as an example.
+        throw "not implemented"
     }
 
     /**
@@ -68,14 +67,13 @@ export class DefaultAugmentation implements Augmentation<string> {
         memory: Memory,
         response: PromptResponse<string>
     ): Promise<Plan> {
-        return Promise.resolve({
-            type: 'plan',
-            commands: [
-                {
-                    type: 'SAY',
-                    response: response.message
-                } as PredictedSayCommand
-            ]
-        });
+        // Map the response into a plan object.
+        // - Tool calls should get mapped to a 'DO' command and other responses to a 'SAY' command.
+        // - We may potentially need to potentially round trip the tool_call_id and we'll want to do that
+        //   the same way we do it for the AssistantsPlanner. See "SUBMIT_TOOL_OUTPUTS_VARIABLE".
+        // - The tool too call will be in the response message which has a role of "assistants" and a "tool_calls" array
+        //   where each tool has an "id", "type", and "function" field.
+        // - we may want to unify the way the MonologueAugmentation and the SequenceAugmentation handle tool responses.
+        throw "not implemented"
     }
 }

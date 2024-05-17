@@ -431,6 +431,9 @@ export class PromptManager implements PromptFunctions {
                 case 'none':
                     // No augmentation needed
                     break;
+                case 'tools':
+                    // TODO: Add tools augmentation
+                    break;
                 case 'monologue':
                     template.augmentation = new MonologueAugmentation(template.actions ?? []);
                     break;

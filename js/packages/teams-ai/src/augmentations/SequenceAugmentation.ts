@@ -11,7 +11,7 @@ import { ChatCompletionAction, PromptResponse } from '../models';
 import { Plan, PredictedDoCommand, PredictedSayCommand } from '../planners';
 import { Tokenizer } from '../tokenizers';
 import { ActionResponseValidator, JSONResponseValidator, Validation } from '../validators';
-import { Augmentation } from './Augmentation';
+import { Augmentation, ServerAugmentationTypes } from './Augmentation';
 import { Message, PromptSection } from '../prompts';
 import { Memory } from '../MemoryFork';
 import { ActionAugmentationSection } from './ActionAugmentationSection';
@@ -77,6 +77,11 @@ export class SequenceAugmentation implements Augmentation<Plan | undefined> {
         );
         this._actionValidator = new ActionResponseValidator(actions, true);
     }
+
+    /**
+     * Type of server augmentation to use.
+     */
+    public readonly serverAugmentation: ServerAugmentationTypes = 'none'; // TODO: Add serverAugmentation property.
 
     /**
      * Creates an optional prompt section for the augmentation.

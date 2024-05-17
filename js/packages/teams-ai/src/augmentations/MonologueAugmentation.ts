@@ -11,7 +11,7 @@ import { ChatCompletionAction, PromptResponse } from '../models';
 import { Plan, PredictedCommand, PredictedDoCommand, PredictedSayCommand } from '../planners';
 import { Tokenizer } from '../tokenizers';
 import { ActionResponseValidator, JSONResponseValidator, Validation } from '../validators';
-import { Augmentation } from './Augmentation';
+import { Augmentation, ServerAugmentationTypes } from './Augmentation';
 import { ActionAugmentationSection } from './ActionAugmentationSection';
 import { Schema } from 'jsonschema';
 import { Message, PromptSection } from '../prompts';
@@ -127,6 +127,11 @@ export class MonologueAugmentation implements Augmentation<InnerMonologue | unde
         );
         this._actionValidator = new ActionResponseValidator(actions, true);
     }
+
+    /**
+     * Type of server augmentation to use.
+     */
+    public readonly serverAugmentation: ServerAugmentationTypes = 'none'; // TODO: Add serverAugmentation property.
 
     /**
      * @returns {PromptSection|undefined} Returns an optional prompt section for the augmentation.
