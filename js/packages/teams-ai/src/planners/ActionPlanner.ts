@@ -21,6 +21,7 @@ import { PromptResponseValidator } from '../validators';
 
 import { LLMClient } from './LLMClient';
 import { Planner, Plan } from './Planner';
+import { Application } from '../Application';
 
 /**
  * Factory function used to create a prompt template.
@@ -191,6 +192,12 @@ export class ActionPlanner<TState extends TurnState = TurnState> implements Plan
         const result = await this.completePrompt(context, state, template, augmentation);
         if (result.status != 'success') {
             throw result.error!;
+        }
+
+        // Check for interruption
+        if (!Application.shouldContinueConversation(context)) {
+            // Return an empty plan
+            return { type: 'plan', commands: [] };
         }
 
         // Check to see if we have a response

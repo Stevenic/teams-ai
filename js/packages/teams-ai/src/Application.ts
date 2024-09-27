@@ -250,6 +250,7 @@ export class Application<TState extends TurnState = TurnState> {
     private readonly _adapter?: BotAdapter;
     private _typingTimer: any;
     private readonly _startSignIn?: Selector;
+    private readonly _conversations: Map<string, TurnContext[]> = new Map();
 
     /**
      * Creates a new Application instance.
@@ -708,10 +709,11 @@ export class Application<TState extends TurnState = TurnState> {
      * });
      * ```
      * @param {TurnContext} turnContext Context class for the current turn of conversation with the user.
+     * @param {boolean} interruptConversation Optional. If `true`, the application will attempt to interrupt the processing of other requests for the same conversation. Defaults to `false`.
      * @returns {Promise<boolean>} True if the activity was successfully dispatched to a handler. False if no matching handlers could be found.
      */
-    public async run(turnContext: TurnContext): Promise<boolean> {
-        return await this.startLongRunningCall(turnContext, async (context) => {
+    public async run(turnContext: TurnContext, interruptConversation: boolean = false): Promise<boolean> {
+        return await this.startLongRunningCall(turnContext, interruptConversation, async (context) => {
             // Start typing indicator timer
             this.startTypingTimer(context);
             try {
@@ -1055,32 +1057,43 @@ export class Application<TState extends TurnState = TurnState> {
      */
     private startLongRunningCall(
         context: TurnContext,
+        interruptConversation: boolean,
         handler: (context: TurnContext) => Promise<boolean>
     ): Promise<boolean> {
-        /**
-         * If the message is a long-running message, continue the conversation
-         * and call the handler with the new context.
-         */
-        if (context.activity.type == ActivityTypes.Message && this._options.longRunningMessages) {
-            return new Promise<boolean>((resolve, reject) => {
-                this.continueConversationAsync(context, async (ctx) => {
-                    try {
-                        // Copy original activity to new context
-                        for (const key in context.activity) {
-                            (ctx.activity as any)[key] = (context.activity as any)[key];
-                        }
+        // Interrupt any other conversations
+        if (interruptConversation) {
+            this.interruptConversations(context);
+        }
 
-                        // Call handler
-                        const result = await handler(ctx);
-                        resolve(result);
-                    } catch (err) {
-                        reject(err);
-                    }
+        this.registerConversation(context);
+        try {
+            /**
+             * If the message is a long-running message, continue the conversation
+             * and call the handler with the new context.
+             */
+            if (context.activity.type == ActivityTypes.Message && this._options.longRunningMessages) {
+                return new Promise<boolean>((resolve, reject) => {
+                    this.continueConversationAsync(context, async (ctx) => {
+                        try {
+                            // Copy original activity to new context
+                            for (const key in context.activity) {
+                                (ctx.activity as any)[key] = (context.activity as any)[key];
+                            }
+
+                            // Call handler
+                            const result = await handler(ctx);
+                            resolve(result);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
                 });
-            });
-        } else {
-            // Call handler directly
-            return handler(context);
+            } else {
+                // Call handler directly
+                return handler(context);
+            }
+        } finally {
+            this.unregisterConversation(context);
         }
     }
 
@@ -1136,7 +1149,61 @@ export class Application<TState extends TurnState = TurnState> {
             return;
         }
     }
+
+    /**
+     * Returns a boolean indicating whether the bot should continue the current conversation.
+     * @param context Context object for the current turn of conversation.
+     * @returns True if the bot should continue the current conversation, otherwise false.
+     */
+    public static shouldContinueConversation(context: TurnContext): boolean {
+        return context.turnState.get(CONTINUE_CONVERSATION_KEY) ?? false;
+    }
+
+    /**
+     * @private
+     * @param context Context object for the current turn of conversation.
+     */
+    private interruptConversations(context: TurnContext): void {
+        const conversationId = context.activity.conversation.id;
+        const running = this._conversations.get(conversationId) ?? [];
+        running.forEach((c) => c.turnState.set(CONTINUE_CONVERSATION_KEY, false));
+    }
+
+    /**
+     * @private
+     * @param context Context object for the current turn of conversation.
+     */
+    private registerConversation(context: TurnContext): void {
+        context.turnState.set(CONTINUE_CONVERSATION_KEY, true);
+        const conversationId = context.activity.conversation.id;
+        const running = this._conversations.get(conversationId) ?? [];
+        running.push(context);
+        this._conversations.set(conversationId, running);
+    }
+
+    /**
+     * @private
+     * @param context Context object for the current turn of conversation.
+     */
+    private unregisterConversation(context: TurnContext): void {
+        const conversationId = context.activity.conversation.id;
+        const running = this._conversations.get(conversationId) ?? [];
+        const index = running.indexOf(context);
+        if (index !== -1) {
+            running.splice(index, 1);
+        }
+        if (running.length === 0) {
+            this._conversations.delete(conversationId);
+        } else {
+            this._conversations.set(conversationId, running);
+        }
+    }
 }
+
+/**
+ * @private
+ */
+const CONTINUE_CONVERSATION_KEY = Symbol('Application.continueConversation');
 
 /**
  * @private
