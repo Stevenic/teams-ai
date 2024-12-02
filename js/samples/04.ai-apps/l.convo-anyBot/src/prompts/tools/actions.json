@@ -1,0 +1,39 @@
+[
+    {
+        "name": "create_program",
+        "description": "Creates a new program using pseudo code and stores it under SUB_PROGRAM. Also clears values in MEMORY_VARIABLES.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "description": "Created program code to store."
+                }
+            },
+            "required": [
+                "code"
+            ]
+        }
+    },
+    {
+        "name": "update_memory",
+        "description": "Updates a value stored under MEMORY_VARIABLES.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the variable to store."
+                },
+                "value": {
+                    "type": "string",
+                    "description": "Value to store."
+                }
+            },
+            "required": [
+                "name",
+                "value"
+            ]
+        }
+    }
+]
