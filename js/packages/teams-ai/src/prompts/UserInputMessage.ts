@@ -15,6 +15,7 @@ import { Message, MessageContentParts } from './Message';
 import { PromptFunctions } from './PromptFunctions';
 import { RenderedPromptSection } from './PromptSection';
 import { PromptSectionBase } from './PromptSectionBase';
+import { Utilities } from '../Utilities';
 
 /**
  * A section capable of rendering user input text and images as a user message.
@@ -52,8 +53,14 @@ export class UserInputMessage extends PromptSectionBase {
         maxTokens: number
     ): Promise<RenderedPromptSection<Message<any>[]>> {
         // Get input text & images
-        const inputText: string = memory.getValue(this._inputVariable) ?? '';
+        let inputText: string = memory.getValue(this._inputVariable) ?? '';
         const inputFiles: InputFile[] = memory.getValue(this._filesVariable) ?? [];
+
+        // Check for Action.Submit from an Adaptive Card
+        if (inputText.length == 0 && typeof context?.activity?.value == 'object') {
+            // Format card action as text
+            inputText = `<ADAPTIVE_CARD_ACTION>\n${Utilities.toString(tokenizer, context.activity.value)}`;
+        }
 
         // Create message
         const message: Message<MessageContentParts[]> = {
@@ -105,7 +112,9 @@ export class UserInputMessage extends PromptSectionBase {
         if (message.content!.length > 0) {
             output.push(message);
         }
+
         // Return output
+        console.log('UserInputMessage: ', output);
         return { output, length, tooLong: false };
     }
 }

@@ -124,10 +124,7 @@ export class ConversationHistory extends PromptSectionBase {
             // Clone message
             const msg = history[i];
             const message: Message = Object.assign({}, msg);
-            if (msg.content !== null) {
-                message.content = Utilities.toString(tokenizer, msg.content);
-            }
-
+           
             // Get text message length
             let length = tokenizer.encode(PromptSectionBase.getMessageText(message)).length;
 

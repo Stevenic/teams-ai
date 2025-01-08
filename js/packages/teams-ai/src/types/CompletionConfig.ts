@@ -107,4 +107,9 @@ export interface CompletionConfig {
      * Optional. Enables parallel tools function calling. Defaults to true.
      */
     parallel_tool_calls?: boolean;
+
+    /**
+     * Optional. Seed to help generate more reproducible model outputs.
+     */
+    seed?: number;
 }

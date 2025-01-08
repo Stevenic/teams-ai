@@ -133,6 +133,20 @@ export class MemoryFork implements Memory {
     }
 
     /**
+     * Merges the changes made to the forked memory back to the original memory.
+     * @param memory Memory to merge the changes into.
+     */
+    public mergeChanges(memory: Memory): void {
+        const scopes = Object.keys(this._fork);
+        for (const scope of scopes) {
+            const names = Object.keys(this._fork[scope]);
+            for (const name of names) {
+                memory.setValue(`${scope}.${name}`, this._fork[scope][name]);
+            }
+        }
+    }   
+
+    /**
      * @private
      * @param {string} path Path to the value to check in the form of `[scope].property`. If scope is omitted, the value is checked in the temporary scope.
      * @returns {Record<string, string>} Scope and name.

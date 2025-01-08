@@ -31,4 +31,9 @@ export interface ChatCompletionAction {
      * about the format.
      */
     parameters?: Schema;
+
+    /**
+     * Optional. Whether the action should use structured outputs.
+     */
+    strict?: boolean;
 }

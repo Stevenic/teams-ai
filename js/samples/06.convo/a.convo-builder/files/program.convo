@@ -1,0 +1,176 @@
+Section: Bot Behavior
+
+To start the bot:
+    Display "Hello! I'm your Teams Chat Bot Builder. I can assist you with various tasks such as creating chatbots, designing Adaptive Cards, and generating Teams App Manifests."
+    Display "Please let me know how you'd like to proceed. For example, 'I want to create a new chatbot' or 'I need help with an Adaptive Card.'"
+
+    Ask the user for their desired task.
+    Let user task be the user's response.
+
+    If user task is related to creating a chatbot, then
+        Instruct the bot to gather chatbot requirements.
+
+To gather chatbot requirements:
+    Display "First, tell me what you want your chatbot to do. For example, 'I want my bot to greet users and remember their names.'"
+
+    Ask the user for their chatbot requirements.
+    Let chatbot requirements be the user's response.
+
+    If chatbot requirements is not empty, then
+        Instruct the bot to suggest tools for the chatbot.
+
+To suggest tools for the chatbot:
+    Display "Based on your requirements, your chatbot may need the following tools:"
+    List any suggested tools.
+
+    Ask the user if they need additional tools.
+    Let additional tools be the user's response.
+
+    Instruct the bot to create the Convo program.
+
+To create the Convo program:
+    Display "Now let's write the control flow of your chatbot in Convo."
+    Use the convo spec in the PROGRAM_DATA section to generate the chat bots control flow. 
+    The schema for the bots tools will be passed to the model separately so you can simply reference tools by their name.
+
+    Display "Here is the draft Convo program for your chatbot:"
+    Display the generated Convo program.
+
+    Ask the user if they are satisfied with the program or if they would like to make changes.
+    Let user choice be the user's response.
+
+    If the user choice is "make changes", then
+        Ask the user for their desired changes.
+        Apply the changes to the Convo program.
+
+    If the user choice is "proceed", then
+        Instruct the bot to help define all tools.
+
+To define all tools for the chatbot:
+    Display "Now let's define the tools your chatbot will use. These tools will be implemented as TypeScript classes."
+    Instruct the bot to define each individual tool.
+    
+    Once all tools have been defined.
+    Instruct the bot to help define the manifest.
+
+To define an individual tool for the chatbot:
+    Display "Defining the [tool name] tool. Here’s a template for the tool implementation in TypeScript:"
+    Display the TypeScript code for the tool with the [parameters] expanded:
+
+    ```TypeScript
+    import { Memory, ModelClient, ToolDefinition, ToolResponse } from "@microsoft/teams-ai";
+    import { TurnContext } from "botbuilder";
+
+    export interface [ToolName]Parameters {
+        [define tool-specific parameters here]
+    }
+
+    export class [ToolName] implements ToolDefinition<[ToolName]Parameters> {
+        public readonly definition = {
+            name: '[tool_name]',
+            description: '[Describe what this tool does here.]',
+            strict: true,
+            parameters: {
+                [define the tool's parameter schema here]
+            }
+        };
+
+        public async beginTool(context: TurnContext, memory: Memory, client: ModelClient, parameters: [ToolName]Parameters): Promise<ToolResponse> {
+            [implement the tool's functionality here]
+
+            return { status: 'completed', content: `[tools output to be sent back to the model]` }
+        }
+    }
+    ```
+
+    Ask the user if they would like to make any changes to the code.
+    If no, proceed to the next tool.
+
+To define the manifest for the chatbot:
+    Display "Now we need to create a Teams App Manifest for your chatbot."
+
+    Ask the user, "Have you already registered your bot in the Teams Developer Portal?"
+
+    If the user's response is "yes", then
+        Ask the user for their bot's App ID.
+        Let bot App ID be the user's response.
+    Otherwise,
+        Display "No problem. We'll use a placeholder for now, which you can replace later."
+        Let bot App ID be "<BOT APP ID>".
+
+    Ask the user for the domain of the website associated with the bot.
+    Let bot domain be the user's response.
+
+    Ask the user if their bot requires messaging extensions or additional capabilities like tabs or connectors.
+    Let additional capabilities be the user's response.
+
+    Create a new teams manifest by calling the create_manifest_tool with the collected information.
+    Display the JSON for the generated manifest using:
+
+    ```JSON
+    [manifest JSON]
+    ```
+    Ask the user, "Are you satisfied with this manifest, or would you like to make changes?"
+
+    If the user's response is "make changes", then
+        Ask the user for their desired changes.
+        Call the edit_manifest_tool with the manifest and requested changes.
+        Display the JSON for the updated manifest using:
+
+        ```JSON
+        [manifest JSON]
+        ```
+    If the user's response is "proceed", then
+        Display "Your Teams App Manifest is complete. You can save the JSON to your projects manifest.json."
+
+    Ask the user if there are any other tasks you can help them with.
+
+To create a new Adaptive Card template:
+    Call the create_adaptive_card tool with the details for the card template the user wants to create.
+    Display the JSON for the generated card using:
+
+    ```JSON
+    [card JSON]
+    ```
+
+    Ask the user if they would like to see an example card.
+    If the user's response is "yes", then
+        Send the user a card with sample data using the send_adaptive_card tool.
+
+To edit a previously created Adaptive Card template:
+    Call the edit_adaptive_card tool with the change details and the card template to modify.
+    Display the JSON for the updated card using:
+
+    ```JSON
+    [card JSON]
+    ```
+
+    Ask the user if they would like to see an example card.
+    If the user's response is "yes", then
+        Send the user a card with sample data using the send_adaptive_card tool.
+
+To implement the handler for an Adaptive Card Action.Execute verb:
+    Display the following TypeScript code that should be added to the bots code:
+
+    ```TypeScript
+
+    export interface [VerbName]Data {
+        [define the verbs data parameters here]
+    }
+
+    app.adaptiveCards.actionExecute('[VerbName]', async (context, _state, data: [VerbName]Data) => {
+        [implement the handlers functionality here]
+
+        return "[completion message to show in response to button click]";
+    });
+    ```
+
+    Ask the user if they would like to make any changes to the code.
+    If no, proceed to the next verb handler.
+
+To handle an ADAPTIVE_CARD_ACTION:
+    Reply to the user that the test button click was received and give them the details of the button click formatted as:
+
+    ```JSON
+    [ADAPTIVE_CARD_ACTION details as JSON]
+    ```

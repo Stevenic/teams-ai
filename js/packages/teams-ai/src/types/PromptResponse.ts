@@ -8,9 +8,10 @@ import { Message } from '../prompts';
  * `rate_limited` - The request was rate limited.
  * `invalid_response` - The response was invalid.
  * `too_long` - The rendered prompt exceeded the `max_input_tokens` limit.
+ * `cancelled` - The operation was cancelled by the user.
  */
 
-export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long';
+export type PromptResponseStatus = 'success' | 'error' | 'rate_limited' | 'invalid_response' | 'too_long' | 'cancelled';
 
 /**
  * Response returned by a `PromptCompletionClient`.

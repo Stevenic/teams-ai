@@ -1,0 +1,36 @@
+Section: Main Program
+Display "Welcome to The Pub {users first name}! I'm your food ordering assistant."
+
+Attempt to retrieve the last order for this user from memory.
+If order is available, then
+    Ask the user, "Welcome back, [user's name]! Last time, you had [order information]. Would you like the same order again?"
+    Let their response be "repeat_order".
+
+    If repeat_order is "yes", then
+        Call place_order with the previous order information.
+        Let the order_id be the result.
+        Save the last order to memory.
+        Use send_adaptive_card to send the user their order information using the ORDER_CARD template.
+        End the program.
+
+    Otherwise,
+        Display "Let's create a new order for you!"
+Else,
+    Display "Let's create your first order!"
+
+Ask the user, "What would you like to order today? You can include a pizza, a drink, or both."
+Let the user's order be their response.
+
+Ask the user to confirm their order by saying, "You ordered: [user's order]. Is that correct?"
+Let their confirmation be their response.
+
+If confirmation is "yes", then
+    Place_order with the user's order.
+    Let the order_id be the result.
+    Update_memory with the last order information.
+    Use send_adaptive_card to send the user their order information using the ORDER_CARD template.
+ Else,
+    Display "No worries! Let's try again."
+    Restart the program.
+
+Display "Thank you for ordering from The Pub! Have a great day!"

@@ -116,7 +116,7 @@ export class TeamsAttachmentDownloader<TState extends TurnState = TurnState> imp
             // Fixup content type
             let contentType = attachment.contentType;
             if (contentType === 'image/*') {
-                contentType = 'image/png';
+                contentType = identifyImageFormat(content);
             }
 
             // Return file
@@ -166,4 +166,19 @@ export class TeamsAttachmentDownloader<TState extends TurnState = TurnState> imp
 
         return appCreds.getToken();
     }
+}
+
+
+function identifyImageFormat(image: Buffer): string {
+    // Check for PNG signature (89 50 4E 47 0D 0A 1A 0A)
+    if (image.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]))) {
+        return "image/png";
+    }
+  
+    // Check for JPEG signature (FF D8 FF)
+    if (image.subarray(0, 3).equals(Buffer.from([0xFF, 0xD8, 0xFF]))) {
+        return "image/jpeg";
+    }
+  
+    return "image/png";
 }

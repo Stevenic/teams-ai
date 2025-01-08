@@ -8,6 +8,8 @@
 
 export * from './ChatCompletionAction';
 export * from './LlamaModel';
+export * from './ModelFactory';
 export * from './OpenAIModel';
+export * from './OpenAIModelFactory';
 export * from './PromptCompletionModel';
 export * from './TestModel';

@@ -1,0 +1,98 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.5",
+    "body": [
+      {
+        "type": "TextBlock",
+        "text": "The Pub Order",
+        "weight": "bolder",
+        "size": "large",
+        "horizontalAlignment": "center"
+      },
+      {
+        "type": "Container",
+        "style": "emphasis",
+        "items": [
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Name:",
+                "value": "[users name]"
+              },
+              {
+                "title": "Order Number:",
+                "value": "[order number]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Table",
+        "columns": [
+          {
+            "type": "TableColumnDefinition",
+            "width": "2"
+          },
+          {
+            "type": "TableColumnDefinition",
+            "width": "1"
+          }
+        ],
+        "rows": [
+          {
+            "type": "TableRow",
+            "cells": [
+              {
+                "type": "TableCell",
+                "style": "emphasis",
+                "items": [
+                  {
+                    "type": "TextBlock",
+                    "text": "Item Description",
+                    "weight": "bolder"
+                  }
+                ]
+              },
+              {
+                "type": "TableCell",
+                "style": "emphasis",
+                "items": [
+                  {
+                    "type": "TextBlock",
+                    "text": "Quantity",
+                    "weight": "bolder"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "TableRow",
+            "cells": [
+              {
+                "type": "TableCell",
+                "items": [
+                  {
+                    "type": "TextBlock",
+                    "text": "[item name]"
+                  }
+                ]
+              },
+              {
+                "type": "TableCell",
+                "items": [
+                  {
+                    "type": "TextBlock",
+                    "text": "[item quantity]"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }

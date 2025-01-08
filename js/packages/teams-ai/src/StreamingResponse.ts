@@ -17,7 +17,7 @@ import { Utilities } from './Utilities';
  * This class is used to send a series of updates to the client in a single response. The expected
  * sequence of calls is:
  *
- * `sendInformativeUpdate()`, `sendTextChunk()`, `sendTextChunk()`, ..., `endStream()`.
+ * `queueInformativeUpdate()`, `queueTextChunk()`, `queueTextChunk()`, ..., `queueStream()`.
  *
  * Once `endStream()` is called, the stream is considered ended and no further updates can be sent.
  */

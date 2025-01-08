@@ -193,6 +193,8 @@ export class ActionPlanner<TState extends TurnState = TurnState> implements Plan
         // Identify the augmentation to use
         const augmentation = template.augmentation ?? new DefaultAugmentation();
 
+        // Is feedback loop enabled?
+        // - This check ensures that the feedback loop is enabled for streaming responses.
         if (ai.enableFeedbackLoop != null) {
             this._enableFeedbackLoop = ai.enableFeedbackLoop;
         }
